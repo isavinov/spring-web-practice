@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="scripts/jquery-3.6.0.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+
+    <!-- CSS Reset -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+
+    <!-- Milligram CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+
+    <meta name="_csrf" content="${_csrf.token}"/>
+    <!-- default header name is X-CSRF-TOKEN -->
+    <meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="column">
+            <table>
+                <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                </tr>
+                </thead>
+                <tbody id="table-content"/>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form id="savePersonForm">
+                <div class="mb-3">
+                    <label for="firstNameInput">First Name</label>
+                    <input type="text" id="firstNameInput">
+                </div>
+                <div class="mb-3">
+                    <label for="lastNameInput">Last Name</label>
+                    <input type="text" id="lastNameInput">
+                </div>
+                <button id="submitButton" type="submit" class="button-primary">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <form id="upload" action="/persons/upload" method="post" enctype="multipart/form-data">
+        <input name="file" type="file" id="file">
+
+        <button id="uploadButton" type="submit" class="button-primary">Upload</button>
+
+    </form>
+</div>
+
+<script>
+
+    $('#upload').submit(function(event){
+        event.preventDefault()
+
+        var form = $(this);
+
+        var formdata  = new FormData(form[0]);
+
+
+
+        $.ajax({
+            url         : '/persons/upload',
+            data        : formdata,
+            cache       : false,
+            contentType : false,
+            processData : false,
+            type        : 'POST',
+            success     : function(data, textStatus, jqXHR){
+                // Callback code
+            }
+        });
+    });
+
+    function buildTable() {
+        $("#table-content").empty()
+        $.get("/persons").done(function (data) {
+
+
+            $.each(data, function () {
+                var row = "<tr><td>" + this.firstName + "</td><td>" + this.lastName + "</td></tr>";
+                console.log(data)
+                $("#table-content").append(row)
+            })
+
+        })
+    }
+
+    $("#savePersonForm").submit(function (event) {
+
+        // Stop form from submitting normally
+        event.preventDefault();
+
+        $.ajax({
+                data: JSON.stringify({
+                    firstName: $("#firstNameInput").val(),
+                    lastName: $("#lastNameInput").val()
+                }),
+                method: "POST",
+                url: "/persons",
+                contentType: "application/json"
+            }
+
+        ).done(function (data) {
+            buildTable();
+            $("#firstNameInput").val("")
+            $("#lastNameInput").val("")
+            alert("Created!");
+        }).fail(function (){
+            alert("Failed");
+        })
+    });
+
+    buildTable()
+</script>
+</body>
+</html>
